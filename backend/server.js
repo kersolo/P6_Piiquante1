@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const port = process.env.PORT;
 const app = express();
+const userRoute = require('./routes/userRoute');
 
 ////
 app.use((req, res, next) => {
@@ -24,6 +25,9 @@ app.use((req, res, next) => {
 //middlewares
 app.use(bodyParser.json());
 app.use(express.json());
+
+//routes
+app.use('/api/auth', userRoute);
 
 //server
 app.listen(port, () => {
