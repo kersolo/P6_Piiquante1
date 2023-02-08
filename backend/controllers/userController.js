@@ -1,6 +1,6 @@
-const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const User = require('../models/userModel');
 
 exports.signup = (req, res, next) => {
   bcrypt
@@ -24,24 +24,30 @@ exports.login = (req, res, next) => {
       if (!user) {
         return res
           .status(401)
-          .json({ message: 'Paire login/mot de passe incorrecte' });
+          .json({ message: "L'identifiant ou le mot de passe est incorrect" });
+      } else {
+        bcrypt
+          .compare(req.body.password, user.password)
+          .then((valid) => {
+            if (!valid) {
+              return res.status(401).json({
+                message: "L'identifiant ou le mot de passe est incorrect",
+              });
+            } else {
+              res.status(200).json({
+                userId: user._id,
+                token: jwt.sign(
+                  { userId: user._id },
+                  process.env.SECRET_TOKEN,
+                  {
+                    expiresIn: process.env.EXP_TOKEN,
+                  }
+                ),
+              });
+            }
+          })
+          .catch((error) => res.status(500).json({ error }));
       }
-      bcrypt
-        .compare(req.body.password, user.password)
-        .then((valid) => {
-          if (!valid) {
-            return res
-              .status(401)
-              .json({ message: 'Paire login/mot de passe incorrecte' });
-          }
-          res.status(200).json({
-            userId: user._id,
-            token: jwt.sign({ userId: user._id }, process.env.SECRET_TOKEN, {
-              expiresIn: '24h',
-            }),
-          });
-        })
-        .catch((error) => res.status(500).json({ error }));
     })
     .catch((error) => res.status(500).json({ error }));
 };
